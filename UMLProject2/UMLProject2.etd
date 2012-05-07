@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <!DOCTYPE XMI SYSTEM "C:\Users\Beenish\.netbeans\6.5\.uml\config\UML_2.0EMBT.dtd"> --><XMI xmlns:UML="omg.org/UML/1.4" xmi.version="2.0"> <XMI.header> <XMI.metamodel xmi.name="UML" xmi.version="1.4"/> <XMI.documentation> <XMI.exporter> Embarcadero's Describe </XMI.exporter> <XMI.exporterVersion> 6.0 </XMI.exporterVersion> </XMI.documentation> </XMI.header> <XMI.content> <UML:Project xmi.id="DCE.397377CB-BEF1-9B0F-ACCA-9258350C3618" mode="Implementation" defaultLanguage="Java" projVersion="6.1.4.837" name="UMLProject2"><UML:Element.ownedElement>
+<UML:Class xmi.id="DCE.16E640FA-A139-0089-978A-DEBC7D534FED" name="Main" owner="DCE.397377CB-BEF1-9B0F-ACCA-9258350C3618"><UML:Element.presentation>
+</UML:Element.presentation><UML:Element.ownedElement>
+<UML:Operation xmi.id="DCE.829BB400-E63A-18DF-82F4-1424E893EA03" name="Main" isConstructor="true" owner="DCE.16E640FA-A139-0089-978A-DEBC7D534FED"><UML:Element.presentation>
+</UML:Element.presentation></UML:Operation>
+<UML:Operation xmi.id="DCE.6A6B471D-884C-7E94-F8A5-A326F09A91AE" name="Unnamed" owner="DCE.16E640FA-A139-0089-978A-DEBC7D534FED"><UML:Element.ownedElement>
+<UML:Parameter xmi.id="DCE.236A1BC5-28FE-60B7-BCFA-A7F051256865" type="DCE.3BE279A0-3F67-7669-F178-EEB90E13B59E" direction="result" owner="DCE.6A6B471D-884C-7E94-F8A5-A326F09A91AE"><UML:TypedElement.multiplicity>
+<UML:Multiplicity xmi.id="DCE.5163A12C-4D4E-7993-952A-DEF7950CE92C"/></UML:TypedElement.multiplicity></UML:Parameter></UML:Element.ownedElement><UML:Element.presentation>
+</UML:Element.presentation></UML:Operation></UML:Element.ownedElement></UML:Class>
+<UML:DataType xmi.id="DCE.3BE279A0-3F67-7669-F178-EEB90E13B59E" name="void" owner="DCE.397377CB-BEF1-9B0F-ACCA-9258350C3618"/></UML:Element.ownedElement></UML:Project></XMI.content> </XMI>

@@ -1,0 +1,42 @@
+line 1: title of degree program
+Any line beginning with a "!" is a section heading
+The REQUIREMENTS section lists all of the requirement types for this degree and the
+    number of courses required to fulfill each requirement.
+All lines under the REQUIREMENTS heading are of the format:
+    <Requirement Type> <Number of required courses from this requirement type>
+    Note: 0 means that all courses listed under this requirement type must be taken
+            in order to obtain this degree
+The lines under the OFFERED section heading list the offered courses for each requirement
+    type
+All lines preceded with a "##" indicate the beginning of a new requirement type's
+    information. It's format is as follows:
+    ## <Requirement Type> <The min priority of all courses within this requirement>
+All lines with course information are of the format:
+    <CourseID> <# Credits> <Semesters it must be taken in> <Priority> <coreq data> <prereq data> <coreqs> <prereqs>
+
+Additional Info:
+    - Semester info:
+        - 1 or more semesters can be listed, each separated by a comma
+        - if there are no semester limitations, then the default value should be 0
+    - Priority
+        - is subject to change within the program
+    - Coreq Data
+        - Contains info on how many coreqs there are and their types
+        - any positive integer ( >= 0 ) indicates the number of corequisite courses a course has
+        - '-1' indicates that the coreq is a certain amount of credits
+        - '-2' indicates that the fulfillment of a requirement is a coreq
+        - If different types of coreqs exist for a course, then their types are separated by commas
+    - Prereq Data
+        - all of the same as the coreq data, except '-2' is not evaluated
+    - Coreqs:
+        - if coreq courses exist, list their courseIDs
+        - if a requirement coreq exist, list the requirement title
+        - if a credits coreq exist, list the number of credits required
+        - Note: If multiple types of coreqs exist, then the order they are listed
+            in MUST follow the order that their data was entered in in coreq_data
+        - Note: If more than one coreq exists, use a single space to separate each one
+    - Prereqs :
+        - same as coreqs, without the requirements prereq allowed
+
+TODO : Add the capability of listing more than one requirement as the coreq
+TODO: Add -2 as a requirement prereq
