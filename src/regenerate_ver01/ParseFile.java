@@ -8,8 +8,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
-import java.util.regex.*;
 
 /**
  *
@@ -74,11 +74,13 @@ public class ParseFile {
         String reqType = "UNKNOWN";		// requirement type
         String courseType = "";
         Map<String, Integer> typeNumMap = new HashMap<String, Integer>();
-        float sectionPriority = 0;
-        float coursePriority = 0;
+        int sectionPriority = 0;
+        int coursePriority = 0;
         int difficulty = 0;
         courseDictionary = new HashMap<String, Course>(100);
-
+        Random rand = new Random();
+        rand.setSeed(0);
+        
         try {
             Scanner scan = new Scanner(new File(filename));
             int section = 1;
@@ -114,7 +116,7 @@ public class ParseFile {
                         if (info[0].equals(COURSE_TYPE_PREFIX)) {
                             // course heading
                             courseType = info[1];
-                            sectionPriority = Float.parseFloat(info[2]);
+                            sectionPriority = Integer.parseInt(info[2]);
                         } else {
                             // this is course data
 
@@ -132,7 +134,7 @@ public class ParseFile {
                                 semesters[i] = Integer.parseInt(semesterInfo[i]);
                             }
 
-                            coursePriority = Float.parseFloat(info[PRIORITY]);
+                            coursePriority = Integer.parseInt(info[PRIORITY]);
 
                             // decipher coreqs
 
@@ -159,7 +161,7 @@ public class ParseFile {
                                     ArrayList<String> coreqCoreq = new ArrayList<String>();
                                     int[] coreqSem = new int[0];
 
-                                    Course course = new Course(coreqCourseID, coreqCredits, 0, coreqSem, coreqType, 0, coreqPrereq, coreqCoreq);
+                                    Course course = new Course(coreqCourseID, coreqCredits, 0, coreqSem, coreqType, 0,rand.nextFloat(), coreqPrereq, coreqCoreq);
                                     courses.add(course);
                                     coreqs.add(coreqCourseID);
                                 } else {
@@ -196,7 +198,7 @@ public class ParseFile {
                                     ArrayList<String> prereqPrereq = new ArrayList<String>();
                                     ArrayList<String> coreqPrereq = new ArrayList<String>();
                                     int[] prereqSem = new int[0];
-                                    Course course = new Course(prereqCourseID, prereqCredits, 0, prereqSem, prereqType, 0, prereqPrereq, coreqPrereq);
+                                    Course course = new Course(prereqCourseID, prereqCredits, 0, prereqSem, prereqType, 0,rand.nextFloat(), prereqPrereq, coreqPrereq);
                                     courses.add(course);
                                     prereqs.add(prereqCourseID);
                                 } else {		// for now, this means numPrereq >= 0
@@ -207,7 +209,7 @@ public class ParseFile {
                                     }
                                 }
                             }
-                            Course course = new Course(courseID, credits, pTest, semesters, courseType, coursePriority + sectionPriority, prereqs, coreqs);
+                            Course course = new Course(courseID, credits, pTest, semesters, courseType, coursePriority + sectionPriority, rand.nextFloat(), prereqs, coreqs);
                             courseDictionary.put(courseID, course);
 
                             courses.add(course);

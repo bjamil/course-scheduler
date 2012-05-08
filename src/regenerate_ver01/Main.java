@@ -22,12 +22,15 @@ import java.io.*;
  *
  */
 public class Main extends JApplet implements ActionListener {
+    
+    //TODO : Only keep valid course alternatives in drop down panels
+    //TODO : Add action listeners to course dropdown menus
 
 
     //Attributes that are referenced throughout the class
 
     private ArrayList<CourseDropdown> courseBoxes;
-    private Schedule schedule;
+    private Schedule_CLP schedule;
     private Degree degree;
     private Graphics g;
     private ArrayList<Course> courses;
@@ -188,7 +191,7 @@ public class Main extends JApplet implements ActionListener {
 			
 			// step 2: Initialize a new schedule and generate a sample schedule
 			//		   that includes selected courses and excludes taken courses
-			this.schedule = new Schedule(catalog, taken, selected);
+			this.schedule = new Schedule_CLP(catalog, taken, selected);
 			schedule.genNewSchedule();
 
 			// step 3: display generated schedule
@@ -196,6 +199,7 @@ public class Main extends JApplet implements ActionListener {
 		}
     }
 
+    
     /*
 	 * TODO : THIS IS NOT NECESSARY -- Only include alternatives in drop downs !!
 	 *
@@ -210,6 +214,7 @@ public class Main extends JApplet implements ActionListener {
         for (Course c : courseList) {
             box.addItem(c.getCourseID());
         }
+        box.setEnabled(false);
         return box;
     }
 
@@ -324,7 +329,7 @@ public class Main extends JApplet implements ActionListener {
 	 *
 	 * Note that this hard codes 8 semesters into the schedule
      */
-    public void displayGui(ArrayList<Course> courseList, Schedule schedule) {
+    public void displayGui(ArrayList<Course> courseList, Schedule_CLP schedule) {
 
         //configure the main panel and all component panels, which correspond to a semester
         g = getContentPane().getGraphics();

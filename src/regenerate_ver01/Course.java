@@ -30,8 +30,9 @@ public class Course {
     private ArrayList<String> successors;
     private ArrayList<Course> prereqCourses;
     private ArrayList<Course> successorCourses;
-    private float priority;		// higher priorities -> take this course earlier
-	private float initialPriority;
+    private int priority;		// higher priorities -> take this course earlier
+	private int initialPriority;
+    private double difficulty; 
     private int credits;
     private int semester;		// semester it is in; -1 if in none
     private boolean taken;		// is it already in the schedule?
@@ -54,6 +55,8 @@ public class Course {
     private boolean modified;
     private int maxCoreqSuccessorChainLength;
 
+    public static int NO_SEMESTER = -1; 
+    private int[] activePossSems;   // this will be changed by the solver 
     // Constructors
     /**
      * Constructor with  priority given as a parameter
@@ -67,7 +70,7 @@ public class Course {
      * @param corequisites
      */
     public Course(String courseID, int credits, int placementTest, int[] semesters,
-            String type, float priority,
+            String type, int priority, double difficulty, 
             ArrayList<String> prerequisites, ArrayList<String> corequisites) {
         this.courseID = courseID;
 
@@ -79,11 +82,13 @@ public class Course {
 
         this.priority = priority;
 		this.initialPriority = priority;
+        this.difficulty = difficulty; 
         this.possSemesters = semesters.clone();	// array of ints so shallow clone should be okay
-
+        this.activePossSems = new int[0];
+        
         this.credits = credits;
         this.type = type;
-        this.semester = -1;
+        this.semester = this.NO_SEMESTER;
         this.inSchedule = false;
 
         this.prerequisites = new String[prerequisites.size()];
@@ -193,7 +198,7 @@ public class Course {
      *
      * @return float priority
      */
-    public float getPriority() {
+    public int getPriority() {
         return this.priority;
     }
 
@@ -364,7 +369,7 @@ public class Course {
         }
     }
 
-	/**
+    /**
      * Updates the priority attribute of this course
      *
      */
@@ -418,12 +423,12 @@ public class Course {
 	 * in the current state of the schedule. This method bases its returned values on
 	 * the relative position of this course in its prereq/coreq/successor chain .
 	 *
-	 * Note that this method assumes that there are 8 semesters in the schedule . 	 *
 	 * Note that this semester assumes that this course is offered in all semesters
 	 *
+         *  @param totalSems - the total semesters in our schedule 
 	 * @return
 	 */
-    public int[] getPossibleSemesters() {
+    public int[] getPossibleSemesters(int totalSems) {
         // if possible semesters have been specified by the user OR
         // if this method was already called once, return the stored data
         if (this.possSemesters != null && this.possSemesters.length > 0
@@ -433,7 +438,7 @@ public class Course {
 
 
         // this is the first time this method is being called; find the
-        // possible semesters for an 8 semester schedule and store & return it
+        // possible semesters for a totalSems semester schedule and store & return it
 
         int earliest = this.getLongestPrerequisiteChain(); // the earliest you can take this course
         int latest;	// the latest semester you can take this course in
@@ -441,17 +446,17 @@ public class Course {
 
         // first check if this course is a coreq for any other course. If it is,
         // it cannot be taken in any semester later than its coreq's max semester
-        int latestCoreqSem = 8;
+        int latestCoreqSem = totalSems;
         for (Course c : this.coreqSuccessorCourses) {
             if (c != null) {
-                int[] pS = c.getPossibleSemesters();
+                int[] pS = c.getPossibleSemesters(totalSems);
                 if (pS[pS.length - 1] < latestCoreqSem) {
                     latestCoreqSem = pS[pS.length - 1]; // getting the min
                 }
             }
         }
         // find out what its latest semester would be if it didnt have coreqs
-        int latestRegSem = 8 - this.getLongestSuccessorChain();
+        int latestRegSem = totalSems - this.getLongestSuccessorChain();
 
 
         // pick the smaller of the two as the latest that this course can be taken
@@ -477,15 +482,14 @@ public class Course {
 	 * based on the current state of the sample schedule as well as this course's
 	 * relative position in its prereq/coreq/successor chain.
 	 *
-	 * Note that this method assumes that 8 semesters are present in the schedule
 	 * Note that this method assumes that this course is offered in all semesters
 	 * 
 	 * @return a 2D int array A such that A[0] = earliest this course can be taken
 	 *			and A[1] = latest this course can be taken
 	 */
-    public int[] getActivePossibleSems() {
+    public int[] getActivePossibleSems(int totalSems, int avgCredPerSem) {
 
-        int[] ps = this.getPossibleSemesters();
+        int[] ps = this.getPossibleSemesters(totalSems);
 
         int start = ps[0];
         int end = ps[ps.length - 1];
@@ -505,7 +509,7 @@ public class Course {
 			// some invalid entries -- maybe some courses aren't in the schedule
             lateCoreq = start;
         }
-        int latePrereq = this.getLatestPrereqSem() + 1;
+        int latePrereq = this.getLatestPrereqSem(avgCredPerSem) + 1;
         if (latePrereq < start) {
 			// some invalid entries -- maybe some courses aren't in the schedule
             latePrereq = start;
@@ -532,6 +536,99 @@ public class Course {
 
         return active;
     }
+    
+    
+    /**
+     * returns an array of all of the possible semesters this course can be in
+     * based on the current state of the sample schedule as well as this course's
+     * relative position in its prereq/coreq/successor chain.
+     *
+     * Note that this method assumes that this course is offered in all semesters
+     * 
+     * 
+     * @param totalSems  -- the total number of semesters in the schedule 
+     * @param openSems -- boolean array of length totalSems that indicates whether or
+     *                      not the course can be added to a specific semester (1 if 
+     *                      it can, 2 if it can't ) .
+     * 
+     * @return an int array A such that contains all open semesters this course 
+     *              can be placed in . The length of the int array corresponds to the
+     *              number of possible semesters it can be placed in 
+     *  
+     */
+    public int[] updateActivePossibleSems(int totalSems, boolean[] openSems, int avgCredPerSems) {
+        if(this.isInSchedule() && this.isAdded()){
+            int[] ps = new int[1];
+            ps[0] = this.semester;
+            this.activePossSems = ps; 
+            return ps;
+        }
+        
+        int[] ps = this.getPossibleSemesters(totalSems);
+
+        int start = ps[0];
+        int end = ps[ps.length - 1];
+
+        int earlyCoreqSuccessor = this.getEarliestCoreqSuccessorSem();
+        if (earlyCoreqSuccessor > end || earlyCoreqSuccessor < start) {
+			// some invalid entries -- maybe some courses aren't in the schedule
+            earlyCoreqSuccessor = end;
+        }
+        int earlySuccessor = this.getEarliestSuccessorSem() - 1;
+        if (earlySuccessor > end || earlySuccessor < start) {
+			// some invalid entries -- maybe some courses aren't in the schedule
+            earlySuccessor = end;
+        }
+        int lateCoreq = this.getLatestCoreqSem();
+        if (lateCoreq < start) {
+			// some invalid entries -- maybe some courses aren't in the schedule
+            lateCoreq = start;
+        }
+        int latePrereq = this.getLatestPrereqSem(avgCredPerSems) + 1;
+        if (latePrereq < start) {
+			// some invalid entries -- maybe some courses aren't in the schedule
+            latePrereq = start;
+        }
+
+		// define the latest you can take this course
+        if (earlyCoreqSuccessor < earlySuccessor) {
+            end = earlyCoreqSuccessor;
+        } else {
+            end = earlySuccessor;
+        }
+
+		// define the earliest you can take this course
+        if (lateCoreq > latePrereq) {
+            start = lateCoreq;
+        } else {
+            start = latePrereq;
+        }
+
+        System.out.println(" ~~ ");
+        System.out.println("Determining active semesters for course: " + this.courseID);
+        System.out.println("earliest : " + start);
+        System.out.println("latest : " + end);
+        System.out.println(" ~~ ");
+        
+        if(end < start){
+            this.activePossSems = new int[0];
+            return new int[0];
+        }
+        int[] active = new int[end-start+1];
+        for(int i =0, j=start; i< active.length; i++,j++){
+            active[i] = j; 
+        }
+
+        this.activePossSems = (int[])active.clone();
+        return active;
+        
+    }
+    
+    public int[] getActivePossSems(){
+        return (int[]) this.activePossSems; 
+    }
+    
+    
     /**
      * @return the successor courses
 	 *
@@ -669,7 +766,7 @@ public class Course {
         }
     }
 
-	public int getLatestPrereqSem() {
+	public int getLatestPrereqSem(int avgCredPerSem) {
         int latest = 0;
 
         for (Course c : this.prereqCourses) {
@@ -680,7 +777,7 @@ public class Course {
                     }
                 } else {
                     // based on an average of 16 credits per semester schedule
-                    int tmp = c.getCredits() / 16;
+                    int tmp = (int)Math.ceil((float)c.getCredits() / avgCredPerSem);
                     if (tmp > latest) {
                         latest = tmp;
                     }
@@ -749,6 +846,12 @@ public class Course {
         return this.getCourseID().compareTo(that.getCourseID());
     }
 
+    /**
+     * compares two courses by their priority 
+     * 
+     * @param that
+     * @return 
+     */
     public int compareTo(Course that) { /// ??? Is this a safe assumption?
         // mode of comparison = priorities
         if (this.priority > that.priority) {
@@ -761,7 +864,7 @@ public class Course {
         // else equal
         return 0;
     }
-
+    
     public boolean equals(Course that) {
         if (this.getCourseID().equalsIgnoreCase(that.getCourseID())) // same courseID = same course
         {
@@ -773,7 +876,7 @@ public class Course {
 
     @Override
     public String toString() {
-        return courseID + "\t" + credits + " Credits\t" + priority + " Priority\t";
+        return courseID + "\t" + credits + " Credits\t" + priority + " Priority\t" + " Difficulty\t" + difficulty;
     }
 
     /**
@@ -782,7 +885,7 @@ public class Course {
      * @return String of object state
      */
     public String getDetails() {
-        String returnThis = courseID + "\t" + credits + " Credits" + "\n\tPrerequisites: ";
+        String returnThis = this.toString() + "\n\tPrerequisites: ";
 
         // getting prerequisites
         if (this.getPrerequisites().length > 0) {
@@ -837,7 +940,7 @@ public class Course {
             pTest = 0;
         }
         Course clone = new Course(this.courseID, this.credits, pTest, this.possSemesters.clone(),
-                this.type, this.initialPriority, prereqs, this.corequisites);
+                this.type, this.initialPriority, this.difficulty, prereqs, this.corequisites);
 
         return clone;
     }
@@ -861,7 +964,7 @@ public class Course {
             pTest = 0;
         }
         Course clone = new Course(this.courseID, this.credits, pTest, this.possSemesters.clone(),
-                this.type, this.initialPriority, prereqs, this.corequisites);
+                this.type, this.initialPriority, this.difficulty, prereqs, this.corequisites);
         clone.setInSchedule(this.inSchedule);
         if (this.locked) {
             clone.lockToSemester(this.semester);
@@ -871,6 +974,41 @@ public class Course {
         clone.setTaken(this.taken);
 
         return clone;
+    }
+
+    /**
+     * @return the difficulty
+     */
+    public double getDifficulty() {
+        return difficulty;
+    }
+
+    /**
+     * @param difficulty the difficulty to set
+     */
+    public void setDifficulty(double difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public int[] removeFromDomain(int semester) {
+        int[] activePossSems = this.getActivePossSems();
+        
+        ArrayList<Integer> domain = new ArrayList<Integer>();
+        
+        for(int i: activePossSems){
+            if(i != semester){
+                domain.add(i);
+            }
+        }
+        
+        this.possSemesters = new int[domain.size()];
+        for(int i = 0; i < this.possSemesters.length; i++){
+            this.possSemesters[i] = domain.get(i);
+        }
+            
+        return this.getActivePossSems(); 
+        
+        
     }
 
 

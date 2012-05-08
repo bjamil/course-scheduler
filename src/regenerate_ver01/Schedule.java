@@ -1496,14 +1496,14 @@ public class Schedule {
 	// New
 	//---------------------------------
 
-	public void findSchedules(){
-		for(Semester s: semesters){
-			fillSemester(s);
-			if(s.getSemID() == this.totalSemesters){
-				saveSchedule(s)
-			}
-		}
-	}
+//	public void findSchedules(){
+//		for(Semester s: semesters){
+//			fillSemester(s);
+//			if(s.getSemID() == this.totalSemesters){
+//				saveSchedule(s)
+//			}
+//		}
+//	}
 
 
 }

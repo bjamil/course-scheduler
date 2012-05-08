@@ -31,7 +31,8 @@ public class Semester {
     private int semID;	// semester number
     private int maxCredits = 18;		//..allowed per semester
     private int minCredits = 12;		//.. allowed per semester
-
+    private double difficulty; 
+    
 	private ArrayList<String> possibleCourses; // all courses that can be taken in this semester
 
 
@@ -43,6 +44,7 @@ public class Semester {
         this.credits = 0;
         this.courses = new ArrayList<Course>();
 		this.possibleCourses = new ArrayList<String>();
+        this.difficulty = 0.0;
     }
 
     
@@ -93,6 +95,7 @@ public class Semester {
     public void addCourse(Course course) {
         this.courses.add(course);
         this.credits += course.getCredits();
+        this.difficulty += course.getDifficulty();
         course.setSemester(semID);
         course.setTaken(true);
         course.setAdded(true);
@@ -111,9 +114,11 @@ public class Semester {
             if (this.courses.get(i).equals(course)) {
                 Course c = this.courses.remove(i);
                 c.setTaken(false);
-                c.setSemester(-1);
+                c.setAdded(false);
+                c.setSemester(Course.NO_SEMESTER);
 
                 this.credits -= c.getCredits();
+                this.difficulty -= c.getDifficulty();
 
                 // set in schedule = false?
                 success = true;
@@ -246,5 +251,12 @@ public class Semester {
             sem.addCourse(courses.get(i));
         }
         return sem;
+    }
+
+    /**
+     * @return the difficulty
+     */
+    public double getDifficulty() {
+        return difficulty;
     }
 }
